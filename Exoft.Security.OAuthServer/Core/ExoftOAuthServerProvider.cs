@@ -35,6 +35,12 @@ namespace Exoft.Security.OAuthServer.Core
         {
             AuthService = authService;
             Configuration = configuration;
+
+            if (Configuration.AccessTokenLifetimeMinutes <= 0)
+                Configuration.AccessTokenLifetimeMinutes = OAuthServerConstants.AccessTokenExpireTimeMinutes;
+
+            if (Configuration.RefreshTokenLifetimeMinutes <= 0)
+                Configuration.RefreshTokenLifetimeMinutes = OAuthServerConstants.RefreshTokenExpireTimeMinutes;
         }
 
         public override Task ExtractTokenRequest(ExtractTokenRequestContext context)
@@ -235,7 +241,7 @@ namespace Exoft.Security.OAuthServer.Core
                             userId,
                             clientId,
                             DateTime.UtcNow,
-                            DateTime.UtcNow.AddMinutes(OAuthServerConstants.RefreshTokenExpireTimeMinutes));
+                            DateTime.UtcNow.AddMinutes(Configuration.RefreshTokenLifetimeMinutes));
 
             context.Ticket.Properties.IssuedUtc = token.IssuedUtc;
             context.Ticket.Properties.ExpiresUtc = token.ExpiresUtc;
