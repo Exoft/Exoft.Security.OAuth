@@ -8,6 +8,7 @@
     <Authors>Markiyan Skolzodra</Authors>
     <Company>Exoft</Company>
     <PackageTags>oauth oauth2 asp .net core openidconnect aspnetcore</PackageTags>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
 </Project>
