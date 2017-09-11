@@ -9,9 +9,9 @@ namespace Exoft.Security.OAuthServer.Core
     //     server.
     public class ExoftOAuthServerOptions : OpenIdConnectServerOptions
     {
-        public ExoftOAuthServerOptions(IAuthenticationService service)
+        public ExoftOAuthServerOptions(IAuthenticationService service, IAuthenticationConfiguration configuration)
         {
-            Provider = new ExoftOAuthServerProvider(service);
+            Provider = new ExoftOAuthServerProvider(service, configuration);
         }
     }
 }

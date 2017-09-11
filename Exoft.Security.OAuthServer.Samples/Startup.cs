@@ -51,9 +51,10 @@ namespace Exoft.Security.OAuthServer.Samples
                     Role = "Administrator",
                     Password = "P@ssw0rd"
                 });
-            app.UseExoftOAuthServer(new ExoftOAuthServerOptions(authService)
+            var configs = new TestAuthConfiguration{Scope = "openid offline_access" };
+            app.UseExoftOAuthServer(new ExoftOAuthServerOptions(authService, configs)
             {
-                //Provider = new CustomAuthorizationProvider(authService),
+                //Provider = new CustomAuthorizationProvider(authService, configs),
                 TokenEndpointPath = "/token",
                 AllowInsecureHttp = true,
                 AccessTokenLifetime = TimeSpan.FromHours(2),

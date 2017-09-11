@@ -19,10 +19,11 @@ namespace Exoft.Security.OAuthServer.Extensions
         /// </summary>
         /// <param name="app"></param>
         /// <param name="service"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
-        public static IApplicationBuilder UseExoftOAuthServer(this IApplicationBuilder app, IAuthenticationService service)
+        public static IApplicationBuilder UseExoftOAuthServer(this IApplicationBuilder app, IAuthenticationService service, IAuthenticationConfiguration configuration)
         {
-            var options = new ExoftOAuthServerOptions(service)
+            var options = new ExoftOAuthServerOptions(service, configuration)
             {
                 //AuthorizationEndpointPath = "/authorize",
                 TokenEndpointPath = "/token",

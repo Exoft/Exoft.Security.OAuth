@@ -27,11 +27,24 @@ namespace Exoft.Security.OAuthServer.Core
         /// </summary>
         public IAuthenticationService AuthService { get; private set; }
 
+        public IAuthenticationConfiguration Configuration { get; private set; }
+
         // TODO: Add response filter which will be remove some properties from response: id_token and etc
 
-        public ExoftOAuthServerProvider(IAuthenticationService authService)
+        public ExoftOAuthServerProvider(IAuthenticationService authService, IAuthenticationConfiguration configuration)
         {
             AuthService = authService;
+            Configuration = configuration;
+        }
+
+        public override Task ExtractTokenRequest(ExtractTokenRequestContext context)
+        {
+            // Applying auth configurations
+            if (!context.Request.HasParameter(OpenIdConnectConstants.Parameters.Scope))
+                context.Request.AddParameter(OpenIdConnectConstants.Parameters.Scope,
+                    new OpenIdConnectParameter(Configuration.Scope));
+
+            return base.ExtractTokenRequest(context);
         }
 
         private Task HandleUserAuthentication(HandleTokenRequestContext context)

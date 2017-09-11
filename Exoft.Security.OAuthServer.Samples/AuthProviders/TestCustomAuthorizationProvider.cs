@@ -15,7 +15,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
 {
     public sealed class TestCustomAuthorizationProvider : ExoftOAuthServerProvider
     {
-        public TestCustomAuthorizationProvider(IAuthenticationService authService) : base(authService) { }
+        public TestCustomAuthorizationProvider(IAuthenticationService authService, IAuthenticationConfiguration configuration) : base(authService, configuration) { }
 
         // Implement OnValidateAuthorizationRequest to support interactive flows (code/implicit/hybrid).
         public override Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context)

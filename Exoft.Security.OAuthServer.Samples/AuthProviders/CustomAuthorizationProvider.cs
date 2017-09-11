@@ -17,7 +17,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
 {
     public sealed class CustomAuthorizationProvider : ExoftOAuthServerProvider
     {
-        public CustomAuthorizationProvider(IAuthenticationService authService) : base(authService) { }
+        public CustomAuthorizationProvider(IAuthenticationService authService, IAuthenticationConfiguration configuration) : base(authService, configuration) { }
 
         // TODO: Add response filter which will be remove some properties from response: id_token and etc
     }
