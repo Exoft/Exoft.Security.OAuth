@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Description>OAuth 2.0 authentication provider that wraps OpenIdConnect.Server up into an easier-to-use package.</Description>
+    <Company>Exoft</Company>
+    <Authors>Markiyan Skolzodra</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageTags>oauth oauth2 asp .net core openidconnect aspnetcore</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNet.Security.OAuth.Introspection" Version="1.0.0" />
+    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="1.0.0" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="1.0.1" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Primitives" Version="1.0.1" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Exoft.Security.OAuthServer.Providers\Exoft.Security.OAuthServer.Providers.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exoft.Security.OAuthServer.Samples", "Exoft.Security.OAuthServer.Samples\Exoft.Security.OAuthServer.Samples.csproj", "{841B4C6D-2361-4DEB-AA0D-B5F97F354234}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exoft.Security.OAuthServer", "Exoft.Security.OAuthServer\Exoft.Security.OAuthServer.csproj", "{2F6E9F17-8F3C-40B2-850F-78A702C81733}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Exoft.Security.OAuthServer.Providers", "Exoft.Security.OAuthServer.Providers\Exoft.Security.OAuthServer.Providers.csproj", "{221D0973-B721-4C1E-A20A-C87CEB41DB2B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{841B4C6D-2361-4DEB-AA0D-B5F97F354234}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{841B4C6D-2361-4DEB-AA0D-B5F97F354234}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{841B4C6D-2361-4DEB-AA0D-B5F97F354234}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{841B4C6D-2361-4DEB-AA0D-B5F97F354234}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F6E9F17-8F3C-40B2-850F-78A702C81733}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F6E9F17-8F3C-40B2-850F-78A702C81733}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F6E9F17-8F3C-40B2-850F-78A702C81733}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F6E9F17-8F3C-40B2-850F-78A702C81733}.Release|Any CPU.Build.0 = Release|Any CPU
+		{221D0973-B721-4C1E-A20A-C87CEB41DB2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{221D0973-B721-4C1E-A20A-C87CEB41DB2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{221D0973-B721-4C1E-A20A-C87CEB41DB2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{221D0973-B721-4C1E-A20A-C87CEB41DB2B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C56B8AEA-B2EE-464B-8116-6B78754FFF17}
+	EndGlobalSection
+EndGlobal
