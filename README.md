@@ -9,7 +9,7 @@ To use library you need to follow these steps:
 
 - Have an existing ASP .NET Core project or create new one, recommended to use `.NET Core 1.1` version of target framework;
 
-- Install the appropriate nuget package **Exoft.Security.OAuthServer**
+- Install the appropriate nuget package [**Exoft.Security.OAuthServer**](https://www.nuget.org/packages/Exoft.Security.OAuthServer)
 
 - Configure the `Startup.cs` file by adding neccassary options, similar to this:
 
