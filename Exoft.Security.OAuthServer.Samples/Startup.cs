@@ -57,7 +57,7 @@ namespace Exoft.Security.OAuthServer.Samples
             };
             app.UseExoftOAuthServer(new ExoftOAuthServerOptions(authService, configs)
             {
-                //Provider = new CustomAuthorizationProvider(authService, configs),
+                Provider = new CustomAuthorizationProvider(authService, configs),
                 TokenEndpointPath = "/token",
                 AllowInsecureHttp = true,
                 AccessTokenLifetime = TimeSpan.FromMinutes(configs.AccessTokenLifetimeMinutes),

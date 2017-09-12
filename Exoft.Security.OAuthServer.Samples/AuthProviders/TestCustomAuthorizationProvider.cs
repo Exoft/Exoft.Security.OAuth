@@ -6,10 +6,13 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Exoft.Security.OAuthServer.Core;
+using Exoft.Security.OAuthServer.Extensions;
 using Exoft.Security.OAuthServer.Providers;
 using Exoft.Security.OAuthServer.Samples.Service;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.Authentication;
+using AuthenticationProperties = Microsoft.AspNetCore.Http.Authentication.AuthenticationProperties;
+using IAuthenticationService = Exoft.Security.OAuthServer.Providers.IAuthenticationService;
 
 namespace Exoft.Security.OAuthServer.Samples.AuthProviders
 {
@@ -163,20 +166,15 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                     OpenIdConnectConstants.Destinations.AccessToken,
                     OpenIdConnectConstants.Destinations.IdentityToken);
 
-                // Create a new authentication ticket holding the user identity.
-                var ticket = new AuthenticationTicket(
-                    new ClaimsPrincipal(identity),
+                context.Validate(new ClaimsPrincipal(identity),
                     new AuthenticationProperties(),
-                    context.Options.AuthenticationScheme);
-
-                // Set the list of scopes granted to the client application.
-                ticket.SetScopes(
-                    /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
-                    /* email: */ OpenIdConnectConstants.Scopes.Email,
-                    /* profile: */ OpenIdConnectConstants.Scopes.Profile);
-                // Set the resource servers the access token should be issued for.
-                ticket.SetResources("resource_server");
-                context.Validate(ticket);
+                    OpenIdConnectServerDefaults.AuthenticationScheme,
+                    new[]
+                    {
+                        /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
+                        /* email: */ OpenIdConnectConstants.Scopes.Email,
+                        /* profile: */ OpenIdConnectConstants.Scopes.Profile}.ToList(),
+                    new[]{ "resource_server" }.ToList());
             }
         }
     }

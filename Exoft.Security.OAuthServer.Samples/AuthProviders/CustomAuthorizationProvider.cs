@@ -9,8 +9,9 @@ using AspNet.Security.OpenIdConnect.Server;
 using Exoft.Security.OAuthServer.Common;
 using Exoft.Security.OAuthServer.Core;
 using Exoft.Security.OAuthServer.Providers;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http.Authentication;
+using AuthenticationProperties = Microsoft.AspNetCore.Http.Authentication.AuthenticationProperties;
+using IAuthenticationService = Exoft.Security.OAuthServer.Providers.IAuthenticationService;
+using Exoft.Security.OAuthServer.Extensions;
 
 namespace Exoft.Security.OAuthServer.Samples.AuthProviders
 {
@@ -73,20 +74,10 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
 
             // Create a new authentication ticket holding the user identity.
             var properties = Helpers.GenerateAuthenticationProperties(user, clientId);
-            var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(identity),
-                new AuthenticationProperties(properties),
-                OpenIdConnectServerDefaults.AuthenticationScheme);
 
-            // Set the list of scopes granted to the client application.
-            ticket.SetScopes(new[] {
-                    /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
-                    /* email: */ OpenIdConnectConstants.Scopes.Email,
-                    /* profile: */ OpenIdConnectConstants.Scopes.Profile,
-                    /* offline_access: */ OpenIdConnectConstants.Scopes.OfflineAccess
-                }.Intersect(context.Request.GetScopes()));
-
-            context.Validate(ticket);
+            context.Validate(new ClaimsPrincipal(identity),
+                            new AuthenticationProperties(properties),
+                            OpenIdConnectServerDefaults.AuthenticationScheme);
 
             return Task.FromResult(0);
         }
@@ -109,12 +100,10 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                 return Task.FromResult(0);
             }
             AuthService.DeleteRefreshToken(token);
-
-            var reNewTicket = new AuthenticationTicket(
-                new ClaimsPrincipal(context.Ticket.Principal),
-                new AuthenticationProperties(context.Ticket.Properties.Items),
-                OpenIdConnectServerDefaults.AuthenticationScheme);
-            context.Validate(reNewTicket);
+            
+            context.Validate(new ClaimsPrincipal(context.Ticket.Principal),
+                            new AuthenticationProperties(context.Ticket.Properties.Items),
+                            OpenIdConnectServerDefaults.AuthenticationScheme);
 
             return Task.FromResult(0);
         }
@@ -165,19 +154,10 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
             {
                 { "ClientId", client.Id.ToString() },
             };
-            var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(identity),
-                new AuthenticationProperties(properties),
-                OpenIdConnectServerDefaults.AuthenticationScheme);
 
-            // Set the list of scopes granted to the client application.
-            ticket.SetScopes(new[] {
-                    /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
-                    /* email: */ OpenIdConnectConstants.Scopes.Email,
-                    /* profile: */ OpenIdConnectConstants.Scopes.Profile,
-                }.Intersect(context.Request.GetScopes()));
-
-            context.Validate(ticket);
+            context.Validate(new ClaimsPrincipal(identity),
+                            new AuthenticationProperties(properties),
+                            OpenIdConnectServerDefaults.AuthenticationScheme);
 
             return Task.FromResult(0);
         }
