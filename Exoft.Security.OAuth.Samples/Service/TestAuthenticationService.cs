@@ -13,7 +13,7 @@ namespace Exoft.Security.OAuth.Samples.Service
         public IUser CurrentUser { get; set; }
 
         private int _refreshTokenIdIncrementer = 1;
-        private int _userIdIncrementer = 2;
+        private int _userIdIncrementer = 1;
 
         public List<IUser> Users { get; set; }
 
@@ -25,21 +25,13 @@ namespace Exoft.Security.OAuth.Samples.Service
         {
             Users = new List<IUser>();
             RefreshTokens = new List<IRefreshToken>();
-
-            Users.Add(new User
-            {
-                Id = 1,
-                Username = "Markiyan Skolozdra",
-                Role = "Administrator",
-                Password = "P@ssw0rd",
-                Secret = "sD3fPKLnFKZUjnSV4qA/XoJOqsmDfNfxWcZ7kPtLc0I=" // SHA hash of Password - only for testing
-            });
         }
 
         public TestAuthenticationService(IUser user):this()
         {
             CurrentUser = user;
             Users.Add(user);
+            _userIdIncrementer++;
         }
 
         public IUser FindUser(Func<IUser, bool> predicate)

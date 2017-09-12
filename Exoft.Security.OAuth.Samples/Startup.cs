@@ -26,6 +26,25 @@ namespace Exoft.Security.OAuth.Samples
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            #region TEST DATA
+            var authService = new TestAuthenticationService(
+                new User
+                {
+                    Id = 1,
+                    Username = "Markiyan Skolozdra",
+                    Role = "Administrator",
+                    Password = "P@ssw0rd",
+                    Secret = "sD3fPKLnFKZUjnSV4qA/XoJOqsmDfNfxWcZ7kPtLc0I=" // SHA hash of Password - only for testing
+                });
+            var configs = new TestAuthConfiguration
+            {
+                Scope = "openid offline_access",
+                AccessTokenLifetimeMinutes = 120,
+                RefreshTokenLifetimeMinutes = 30
+            };
+
+            #endregion
+
             services.AddAuthentication().AddOAuthValidation()
 
             .AddOpenIdConnectServer(options =>
@@ -33,10 +52,9 @@ namespace Exoft.Security.OAuth.Samples
                 options.ProviderType = typeof(CustomAuthorizationProvider);
 
                 // Enable the authorization, logout, token and userinfo endpoints.
-                options.AuthorizationEndpointPath = "/connect/authorize";
-                options.LogoutEndpointPath = "/connect/logout";
                 options.TokenEndpointPath = "/token";
-                options.UserinfoEndpointPath = "/connect/userinfo";
+                options.AccessTokenLifetime = TimeSpan.FromMinutes(configs.AccessTokenLifetimeMinutes);
+                options.RefreshTokenLifetime = TimeSpan.FromMinutes(configs.RefreshTokenLifetimeMinutes);
 
                 // Note: see AuthorizationController.cs for more
                 // information concerning ApplicationCanDisplayErrors.
@@ -46,8 +64,11 @@ namespace Exoft.Security.OAuth.Samples
 
             services.AddScoped<CustomAuthorizationProvider>();
 
-            services.AddTransient<IAuthenticationService, TestAuthenticationService>();
-            services.AddTransient<IAuthenticationConfiguration, TestAuthConfiguration>();
+            services.AddSingleton<IAuthenticationService>(p => authService);
+            services.AddSingleton<IAuthenticationConfiguration>(p => configs);
+
+            //services.AddTransient<IAuthenticationService, TestAuthenticationService>();
+            //services.AddTransient<IAuthenticationConfiguration, TestAuthConfiguration>();
 
             services.AddMvc();
         }

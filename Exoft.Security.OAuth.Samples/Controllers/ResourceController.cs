@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Exoft.Security.OAuth.Samples.Controllers
 {
-    [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme, Roles = "Administrator1")]
+    [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme, Roles = "Administrator")]
     [Route("api")]
     public class ResourceController : Controller
     {

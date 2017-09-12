@@ -85,8 +85,6 @@ namespace Exoft.Security.OAuth.Samples.CustomProviders
 
         private Task HandleRefreshTokenRequest(HandleTokenRequestContext context)
         {
-            //TODO: add checking RefreshToken expiration (seems it's already implemented by OpenIdConnectServer)
-
             // Retrieve the token from the database and ensure it is still valid.
             var clientId = context.Ticket.Properties.Items["ClientId"];
             var token = AuthService.FindRefreshToken(t =>
