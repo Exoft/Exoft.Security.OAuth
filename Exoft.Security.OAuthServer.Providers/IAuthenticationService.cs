@@ -28,6 +28,8 @@ namespace Exoft.Security.OAuthServer.Providers
         /// <param name="password"></param>
         /// <returns></returns>
         bool ValidateRequestedUserCredentials(IUser user, string username, string password);
+        bool ValidateRequestedClientCredentials(IUser user, string clientId, string clientSecret);
+        //bool ValidateRequestedClientCredentials(string clientId, string clientSecret);
 
         IRefreshToken AddRefreshToken(string tokenIdentifier, int userId, string clientId, DateTime issuedUtc, DateTime expiresUtc);
         void DeleteRefreshToken(IRefreshToken refreshToken);

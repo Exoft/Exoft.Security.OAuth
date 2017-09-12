@@ -10,8 +10,16 @@ namespace Exoft.Security.OAuthServer.Providers
         
         string Username { get; set; }
 
+        /// <summary>
+        /// Should contain SHA hash of entered value
+        /// </summary>
         string Password { get; set; }
 
         string Role { get; set; }
+
+        /// <summary>
+        /// Should contain SHA hash of entered value
+        /// </summary>
+        string Secret { get; set; }
     }
 }

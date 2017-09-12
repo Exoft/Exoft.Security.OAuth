@@ -43,16 +43,6 @@ namespace Exoft.Security.OAuthServer.Core
                 Configuration.RefreshTokenLifetimeMinutes = OAuthServerConstants.RefreshTokenExpireTimeMinutes;
         }
 
-        public override Task ExtractTokenRequest(ExtractTokenRequestContext context)
-        {
-            // Applying auth configurations
-            if (!context.Request.HasParameter(OpenIdConnectConstants.Parameters.Scope))
-                context.Request.AddParameter(OpenIdConnectConstants.Parameters.Scope,
-                    new OpenIdConnectParameter(Configuration.Scope));
-
-            return base.ExtractTokenRequest(context);
-        }
-
         private Task HandleUserAuthentication(HandleTokenRequestContext context)
         {
             string clientId = Guid.NewGuid().ToString();
@@ -152,6 +142,79 @@ namespace Exoft.Security.OAuthServer.Core
             return Task.FromResult(0);
         }
 
+        private Task HandleClientCredentialsAuthentication(HandleTokenRequestContext context)
+        {
+            //TODO
+            // add note that currently authentication by grant_type=client_credentials is using search 
+            // appropriate Client with comparing ClientId and UserId
+
+            var client = AuthService.FindUser(u => context.Request.ClientId.Equals(u.Id.ToString(), StringComparison.Ordinal));
+
+            if (client == null)
+            {
+                context.Reject(
+                    error: OpenIdConnectConstants.Errors.InvalidGrant,
+                    description: "Invalid credentials.");
+                return Task.FromResult(0);
+            }
+
+            if (!AuthService.ValidateRequestedClientCredentials(client, context.Request.ClientId, context.Request.ClientSecret))
+            {
+                context.Reject(
+                    error: OpenIdConnectConstants.Errors.InvalidGrant,
+                    description: "The specified user credentials are invalid.");
+
+                return Task.FromResult(0);
+            }
+
+            // Create a new ClaimsIdentity containing the claims that
+            // will be used to create an id_token and/or an access token.
+            var identity = new ClaimsIdentity(
+                OpenIdConnectServerDefaults.AuthenticationScheme,
+                OpenIdConnectConstants.Claims.Name,
+                OpenIdConnectConstants.Claims.Role);
+
+            identity.AddClaim(OpenIdConnectConstants.Claims.Subject, Guid.NewGuid().ToString(),
+                OpenIdConnectConstants.Destinations.AccessToken,
+                OpenIdConnectConstants.Destinations.IdentityToken);
+
+            identity.AddClaim(OpenIdConnectConstants.Claims.ClientId, client.Id.ToString(),
+                OpenIdConnectConstants.Destinations.AccessToken,
+                OpenIdConnectConstants.Destinations.IdentityToken);
+
+
+            // Create a new authentication ticket holding the user identity.
+            var properties = new Dictionary<string, string>
+            {
+                { "ClientId", client.Id.ToString() },
+            };
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(identity),
+                new AuthenticationProperties(properties),
+                OpenIdConnectServerDefaults.AuthenticationScheme);
+
+            // Set the list of scopes granted to the client application.
+            ticket.SetScopes(new[] {
+                    /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
+                    /* email: */ OpenIdConnectConstants.Scopes.Email,
+                    /* profile: */ OpenIdConnectConstants.Scopes.Profile,
+                }.Intersect(context.Request.GetScopes()));
+
+            context.Validate(ticket);
+
+            return Task.FromResult(0);
+        }
+
+        public override Task ExtractTokenRequest(ExtractTokenRequestContext context)
+        {
+            // Applying auth configurations
+            if (!context.Request.HasParameter(OpenIdConnectConstants.Parameters.Scope))
+                context.Request.AddParameter(OpenIdConnectConstants.Parameters.Scope,
+                    new OpenIdConnectParameter(Configuration.Scope));
+
+            return base.ExtractTokenRequest(context);
+        }
+
         //
         // Summary:
         //     Represents an event called for each request to the token endpoint to determine
@@ -168,37 +231,66 @@ namespace Exoft.Security.OAuthServer.Core
         {
             // Reject the token request if it doesn't specify grant_type=authorization_code,
             // grant_type=password or grant_type=refresh_token.
-            if (!context.Request.IsPasswordGrantType() && !context.Request.IsRefreshTokenGrantType())
+            if (!context.Request.IsPasswordGrantType()
+                && !context.Request.IsRefreshTokenGrantType()
+                && !context.Request.IsClientCredentialsGrantType())
             {
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.UnsupportedGrantType,
-                    description: "Only grant_type=password or " +
-                                 "grant_type=refresh_token are accepted by this server.");
+                    description: "Only authorization code, refresh token, client credentials grant types " +
+                                 "are accepted by this authorization server.");
 
                 return Task.FromResult(0);
             }
 
-            // Skip client authentication if the client identifier is missing.
-            // Note: ASOS will automatically ensure that the calling application
-            // cannot use an authorization code or a refresh token if it's not
-            // the intended audience, even if client authentication was skipped.
-            if (string.IsNullOrEmpty(context.ClientId))
+            // Note: client authentication is not mandatory for non-confidential client applications like mobile apps
+            // (except when using the client credentials grant type) but this authorization server uses a safer policy
+            // that makes client authentication mandatory and returns an error if client_id or client_secret is missing.
+            // You may consider relaxing it to support the resource owner password credentials grant type
+            // with JavaScript or desktop applications, where client credentials cannot be safely stored.
+            // In this case, call context.Skip() to inform the server middleware the client is not trusted.
+
+            if (context.Request.IsClientCredentialsGrantType())
+            {
+                if (string.IsNullOrEmpty(context.ClientId) || string.IsNullOrEmpty(context.ClientSecret))
+                {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidRequest,
+                        description: "The mandatory 'client_id'/'client_secret' parameters are missing.");
+
+                    return Task.FromResult(0);
+                }
+
+                var client = AuthService.FindUser(u => u.Id.ToString() == context.ClientId);
+                if (client == null)
+                {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidClient,
+                        description: "The specified client identifier is invalid.");
+
+                    return Task.FromResult(0);
+                }
+
+                // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
+                // a key derivation function like PBKDF2 to slow down the secret validation process.
+                // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
+                // For that, you can use the CryptoHelper library developed by @henkmollema:
+                // https://github.com/henkmollema/CryptoHelper.
+                if (!AuthService.ValidateRequestedClientCredentials(client, context.ClientId, context.ClientSecret))
+                {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidClient,
+                        description: "The specified client credentials are invalid.");
+
+                    return Task.FromResult(0);
+                }
+
+                context.Validate();
+            }
+            else
             {
                 context.Skip();
-                return Task.FromResult(0);
             }
-
-            var user = AuthService.FindUser(u => u.Id.ToString() == context.ClientId);
-            if (user == null)
-            {
-                context.Reject(
-                    error: OpenIdConnectConstants.Errors.InvalidClient,
-                    description: "The specified client identifier is invalid.");
-
-                return Task.FromResult(0);
-            }
-
-            context.Skip();
 
             return Task.FromResult(0);
         }
@@ -226,6 +318,10 @@ namespace Exoft.Security.OAuthServer.Core
             else if (context.Request.IsRefreshTokenGrantType())
             {
                 return HandleRefreshTokenRequest(context);
+            }
+            else if (context.Request.IsClientCredentialsGrantType())
+            {
+                return HandleClientCredentialsAuthentication(context);
             }
 
             return Task.FromResult(0);
