@@ -9,7 +9,7 @@ using AspNet.Security.OpenIdConnect.Server;
 using Exoft.Security.OAuthServer.Common;
 using Exoft.Security.OAuthServer.Core;
 using Exoft.Security.OAuthServer.Providers;
-using AuthenticationProperties = Microsoft.AspNetCore.Http.Authentication.AuthenticationProperties;
+using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 using IAuthenticationService = Exoft.Security.OAuthServer.Providers.IAuthenticationService;
 using Exoft.Security.OAuthServer.Extensions;
 
@@ -17,7 +17,8 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
 {
     public sealed class CustomAuthorizationProvider : ExoftOAuthServerProvider
     {
-        public CustomAuthorizationProvider(IAuthenticationService authService, IAuthenticationConfiguration configuration) : base(authService, configuration) { }
+        public CustomAuthorizationProvider(IAuthenticationService authService,
+            IAuthenticationConfiguration configuration) : base(authService, configuration) {}
 
         // TODO: Add response filter which will be remove some properties from response: id_token and etc
 
@@ -32,7 +33,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidGrant,
                     description: "Invalid credentials.");
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             if (!AuthService.ValidateRequestedUserCredentials(user, context.Request.Username, context.Request.Password))
@@ -41,7 +42,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                     error: OpenIdConnectConstants.Errors.InvalidGrant,
                     description: "The specified user credentials are invalid.");
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             // Create a new ClaimsIdentity containing the claims that
@@ -79,7 +80,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                             new AuthenticationProperties(properties),
                             OpenIdConnectServerDefaults.AuthenticationScheme);
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         private Task HandleRefreshTokenRequest(HandleTokenRequestContext context)
@@ -97,7 +98,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                     error: OpenIdConnectConstants.Errors.InvalidGrant,
                     description: "The refresh token is no longer valid.");
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
             AuthService.DeleteRefreshToken(token);
             
@@ -105,7 +106,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                             new AuthenticationProperties(context.Ticket.Properties.Items),
                             OpenIdConnectServerDefaults.AuthenticationScheme);
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         private Task HandleClientCredentialsAuthentication(HandleTokenRequestContext context)
@@ -121,7 +122,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                 context.Reject(
                     error: OpenIdConnectConstants.Errors.InvalidGrant,
                     description: "Invalid credentials.");
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             if (!AuthService.ValidateRequestedClientCredentials(client, context.Request.ClientId, context.Request.ClientSecret))
@@ -130,7 +131,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                     error: OpenIdConnectConstants.Errors.InvalidGrant,
                     description: "The specified user credentials are invalid.");
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             // Create a new ClaimsIdentity containing the claims that
@@ -159,7 +160,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                             new AuthenticationProperties(properties),
                             OpenIdConnectServerDefaults.AuthenticationScheme);
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public override Task ExtractTokenRequest(ExtractTokenRequestContext context)
@@ -169,7 +170,8 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                 context.Request.AddParameter(OpenIdConnectConstants.Parameters.Scope,
                     new OpenIdConnectParameter(Configuration.Scope));
 
-            return base.ExtractTokenRequest(context);
+            //return base.ExtractTokenRequest(context);
+            return Task.CompletedTask;
         }
 
         //
@@ -183,7 +185,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
         //
         // Returns:
         //     A System.Threading.Tasks.Task that can be used to monitor the asynchronous operation.
-        //public override Task ValidateTokenRequest(ValidateTokenRequestContext context) { return Task.FromResult(0); }
+        //public override Task ValidateTokenRequest(ValidateTokenRequestContext context) { return Task.CompletedTask; }
         public override Task ValidateTokenRequest(ValidateTokenRequestContext context)
         {
             // Reject the token request if it doesn't specify grant_type=authorization_code,
@@ -197,7 +199,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                     description: "Only authorization code, refresh token, client credentials grant types " +
                                  "are accepted by this authorization server.");
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             // Note: client authentication is not mandatory for non-confidential client applications like mobile apps
@@ -215,7 +217,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                         error: OpenIdConnectConstants.Errors.InvalidRequest,
                         description: "The mandatory 'client_id'/'client_secret' parameters are missing.");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 var client = AuthService.FindUser(u => u.Id.ToString() == context.ClientId);
@@ -225,7 +227,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                         error: OpenIdConnectConstants.Errors.InvalidClient,
                         description: "The specified client identifier is invalid.");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
@@ -239,7 +241,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                         error: OpenIdConnectConstants.Errors.InvalidClient,
                         description: "The specified client credentials are invalid.");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 context.Validate();
@@ -249,7 +251,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                 context.Skip();
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         //
@@ -263,7 +265,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
         //
         // Returns:
         //     A System.Threading.Tasks.Task that can be used to monitor the asynchronous operation.
-        //public override Task HandleTokenRequest(HandleTokenRequestContext context) { return Task.FromResult(0);}
+        //public override Task HandleTokenRequest(HandleTokenRequestContext context) { return Task.CompletedTask;}
         public override Task HandleTokenRequest(HandleTokenRequestContext context)
         {
             // Only handle grant_type=password token requests and let the
@@ -281,7 +283,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                 return HandleClientCredentialsAuthentication(context);
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public override Task SerializeRefreshToken(SerializeRefreshTokenContext context)
@@ -299,7 +301,7 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
             context.Ticket.Properties.IssuedUtc = token.IssuedUtc;
             context.Ticket.Properties.ExpiresUtc = token.ExpiresUtc;
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }

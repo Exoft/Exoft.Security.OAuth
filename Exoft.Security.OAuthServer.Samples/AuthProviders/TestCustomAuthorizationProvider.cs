@@ -153,28 +153,28 @@ namespace Exoft.Security.OAuthServer.Samples.AuthProviders
                 //}
 
 
-                var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
+                //var identity = new ClaimsIdentity(context.Options.AuthenticationScheme);
 
-                // Note: the subject claim is always included in both identity and
-                // access tokens, even if an explicit destination is not specified.
-                identity.AddClaim(OpenIdConnectConstants.Claims.Subject, AuthService.CurrentUser.Id.ToString());
-                identity.AddClaim(OpenIdConnectConstants.Claims.Role, AuthService.CurrentUser.Role);
+                //// Note: the subject claim is always included in both identity and
+                //// access tokens, even if an explicit destination is not specified.
+                //identity.AddClaim(OpenIdConnectConstants.Claims.Subject, AuthService.CurrentUser.Id.ToString());
+                //identity.AddClaim(OpenIdConnectConstants.Claims.Role, AuthService.CurrentUser.Role);
 
-                // When adding custom claims, you MUST specify one or more destinations.
-                // Read "part 7" for more information about custom claims and scopes.
-                identity.AddClaim("username", AuthService.CurrentUser.Username,
-                    OpenIdConnectConstants.Destinations.AccessToken,
-                    OpenIdConnectConstants.Destinations.IdentityToken);
+                //// When adding custom claims, you MUST specify one or more destinations.
+                //// Read "part 7" for more information about custom claims and scopes.
+                //identity.AddClaim("username", AuthService.CurrentUser.Username,
+                //    OpenIdConnectConstants.Destinations.AccessToken,
+                //    OpenIdConnectConstants.Destinations.IdentityToken);
 
-                context.Validate(new ClaimsPrincipal(identity),
-                    new AuthenticationProperties(),
-                    OpenIdConnectServerDefaults.AuthenticationScheme,
-                    new[]
-                    {
-                        /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
-                        /* email: */ OpenIdConnectConstants.Scopes.Email,
-                        /* profile: */ OpenIdConnectConstants.Scopes.Profile}.ToList(),
-                    new[]{ "resource_server" }.ToList());
+                //context.Validate(new ClaimsPrincipal(identity),
+                //    new AuthenticationProperties(),
+                //    OpenIdConnectServerDefaults.AuthenticationScheme,
+                //    new[]
+                //    {
+                //        /* openid: */ OpenIdConnectConstants.Scopes.OpenId,
+                //        /* email: */ OpenIdConnectConstants.Scopes.Email,
+                //        /* profile: */ OpenIdConnectConstants.Scopes.Profile}.ToList(),
+                //    new[]{ "resource_server" }.ToList());
             }
         }
     }

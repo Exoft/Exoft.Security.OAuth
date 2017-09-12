@@ -38,31 +38,31 @@ namespace Exoft.Security.OAuthServer.Samples
         {
             #region Using Exoft.Security.OAuth
 
-            app.UseOAuthValidation();
+            //app.UseOAuthValidation();
 
-            var authService = new TestAuthenticationService(
-                new User
-                {
-                    Id = 1,
-                    Username = "Markiyan Skolozdra",
-                    Role = "Administrator",
-                    Password = "P@ssw0rd",
-                    Secret = "sD3fPKLnFKZUjnSV4qA/XoJOqsmDfNfxWcZ7kPtLc0I=" // SHA hash of Password - only for testing
-                });
-            var configs = new TestAuthConfiguration
-            {
-                Scope = "openid offline_access",
-                AccessTokenLifetimeMinutes = 120,
-                RefreshTokenLifetimeMinutes = 30
-            };
-            app.UseExoftOAuthServer(new ExoftOAuthServerOptions(authService, configs)
-            {
-                Provider = new CustomAuthorizationProvider(authService, configs),
-                TokenEndpointPath = "/token",
-                AllowInsecureHttp = true,
-                AccessTokenLifetime = TimeSpan.FromMinutes(configs.AccessTokenLifetimeMinutes),
-                RefreshTokenLifetime = TimeSpan.FromMinutes(configs.RefreshTokenLifetimeMinutes)
-            });
+            //var authService = new TestAuthenticationService(
+            //    new User
+            //    {
+            //        Id = 1,
+            //        Username = "Markiyan Skolozdra",
+            //        Role = "Administrator",
+            //        Password = "P@ssw0rd",
+            //        Secret = "sD3fPKLnFKZUjnSV4qA/XoJOqsmDfNfxWcZ7kPtLc0I=" // SHA hash of Password - only for testing
+            //    });
+            //var configs = new TestAuthConfiguration
+            //{
+            //    Scope = "openid offline_access",
+            //    AccessTokenLifetimeMinutes = 120,
+            //    RefreshTokenLifetimeMinutes = 30
+            //};
+            //app.UseExoftOAuthServer(new ExoftOAuthServerOptions(authService, configs)
+            //{
+            //    Provider = new CustomAuthorizationProvider(authService, configs),
+            //    TokenEndpointPath = "/token",
+            //    AllowInsecureHttp = true,
+            //    AccessTokenLifetime = TimeSpan.FromMinutes(configs.AccessTokenLifetimeMinutes),
+            //    RefreshTokenLifetime = TimeSpan.FromMinutes(configs.RefreshTokenLifetimeMinutes)
+            //});
 
             #endregion
 
