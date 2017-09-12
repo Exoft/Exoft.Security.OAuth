@@ -7,42 +7,18 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Exoft.Security.OAuthServer.Common;
+using Exoft.Security.OAuthServer.Core;
 using Exoft.Security.OAuthServer.Providers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.Authentication;
 
-namespace Exoft.Security.OAuthServer.Core
+namespace Exoft.Security.OAuthServer.Samples.AuthProviders
 {
-    //
-    // Summary:
-    //     Defines a provider exposing events used by the OpenID Connect server to communicate
-    //     with the web application while processing incoming requests. This class can be
-    //     used as a virtual base class, but it also offers delegate properties that can
-    //     be used to handle individual calls without having to explicitly declare a new
-    //     subclassed type.
-    public class ExoftOAuthServerProvider : OpenIdConnectServerProvider
+    public sealed class CustomAuthorizationProvider : ExoftOAuthServerProvider
     {
-        /// <summary>
-        /// Uses for fetching Users or RefreshTokens in all functions that perform request validation 
-        /// of Token and AuthorizationRequest
-        /// </summary>
-        public IAuthenticationService AuthService { get; private set; }
-
-        public IAuthenticationConfiguration Configuration { get; private set; }
+        public CustomAuthorizationProvider(IAuthenticationService authService, IAuthenticationConfiguration configuration) : base(authService, configuration) { }
 
         // TODO: Add response filter which will be remove some properties from response: id_token and etc
-
-        public ExoftOAuthServerProvider(IAuthenticationService authService, IAuthenticationConfiguration configuration)
-        {
-            AuthService = authService;
-            Configuration = configuration;
-
-            if (Configuration.AccessTokenLifetimeMinutes <= 0)
-                Configuration.AccessTokenLifetimeMinutes = OAuthServerConstants.AccessTokenExpireTimeMinutes;
-
-            if (Configuration.RefreshTokenLifetimeMinutes <= 0)
-                Configuration.RefreshTokenLifetimeMinutes = OAuthServerConstants.RefreshTokenExpireTimeMinutes;
-        }
 
         private Task HandleUserAuthentication(HandleTokenRequestContext context)
         {
