@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -179,6 +180,10 @@ namespace Exoft.Security.OAuthServer.Core
                 OpenIdConnectConstants.Destinations.IdentityToken);
 
             identity.AddClaim(OpenIdConnectConstants.Claims.ClientId, client.Id.ToString(),
+                OpenIdConnectConstants.Destinations.AccessToken,
+                OpenIdConnectConstants.Destinations.IdentityToken);
+
+            identity.AddClaim(OpenIdConnectConstants.Claims.Role, client.Role,
                 OpenIdConnectConstants.Destinations.AccessToken,
                 OpenIdConnectConstants.Destinations.IdentityToken);
 
