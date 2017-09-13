@@ -49,143 +49,170 @@ namespace Exoft.Security.OAuthServer.Core
 
         private Task HandleUserAuthentication(HandleTokenRequestContext context)
         {
-            string clientId = Guid.NewGuid().ToString();
+            try
+            {
+                string clientId = Guid.NewGuid().ToString();
 
-            var user = AuthService.FindUser(u => u.Username == context.Request.Username);
+                var user = AuthService.FindUser(u => u.Username == context.Request.Username);
 
-            if (user == null)
+                if (user == null)
+                {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidGrant,
+                        description: "Invalid credentials.");
+                    return Task.CompletedTask;
+                }
+
+                if (!AuthService.ValidateRequestedUserCredentials(user, context.Request.Username, context.Request.Password))
+                {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidGrant,
+                        description: "The specified user credentials are invalid.");
+
+                    return Task.CompletedTask;
+                }
+
+                // Create a new ClaimsIdentity containing the claims that
+                // will be used to create an id_token and/or an access token.
+                var identity = new ClaimsIdentity(
+                    OpenIdConnectServerDefaults.AuthenticationScheme,
+                    OpenIdConnectConstants.Claims.Name,
+                    OpenIdConnectConstants.Claims.Role);
+
+                identity.AddClaim(OpenIdConnectConstants.Claims.Subject, Guid.NewGuid().ToString(),
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
+
+                identity.AddClaim(OpenIdConnectConstants.Claims.ClientId, Guid.NewGuid().ToString(),
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
+
+                identity.AddClaim(OpenIdConnectConstants.Claims.Name, user.Id.ToString(),
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
+
+                identity.AddClaim(OpenIdConnectConstants.Claims.Username, user.Username,
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
+
+                identity.AddClaim(OpenIdConnectConstants.Claims.Role, user.Role,
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
+
+
+                // Create a new authentication ticket holding the user identity.
+                var properties = Helpers.GenerateAuthenticationProperties(user, clientId);
+
+                context.Validate(new ClaimsPrincipal(identity),
+                                new AuthenticationProperties(properties),
+                                OpenIdConnectServerDefaults.AuthenticationScheme);
+
+            }
+            catch (Exception ex)
             {
                 context.Reject(
-                    error: OpenIdConnectConstants.Errors.InvalidGrant,
-                    description: "Invalid credentials.");
-                return Task.FromResult(0);
+                    error: $"{ex.HResult}",
+                    description: ex.Message);
             }
-
-            if (!AuthService.ValidateRequestedUserCredentials(user, context.Request.Username, context.Request.Password))
-            {
-                context.Reject(
-                    error: OpenIdConnectConstants.Errors.InvalidGrant,
-                    description: "The specified user credentials are invalid.");
-
-                return Task.FromResult(0);
-            }
-
-            // Create a new ClaimsIdentity containing the claims that
-            // will be used to create an id_token and/or an access token.
-            var identity = new ClaimsIdentity(
-                OpenIdConnectServerDefaults.AuthenticationScheme,
-                OpenIdConnectConstants.Claims.Name,
-                OpenIdConnectConstants.Claims.Role);
-
-            identity.AddClaim(OpenIdConnectConstants.Claims.Subject, Guid.NewGuid().ToString(),
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
-            identity.AddClaim(OpenIdConnectConstants.Claims.ClientId, Guid.NewGuid().ToString(),
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
-            identity.AddClaim(OpenIdConnectConstants.Claims.Name, user.Id.ToString(),
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
-            identity.AddClaim(OpenIdConnectConstants.Claims.Username, user.Username,
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
-            identity.AddClaim(OpenIdConnectConstants.Claims.Role, user.Role,
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
-
-            // Create a new authentication ticket holding the user identity.
-            var properties = Helpers.GenerateAuthenticationProperties(user, clientId);
-
-            context.Validate(new ClaimsPrincipal(identity),
-                            new AuthenticationProperties(properties),
-                            OpenIdConnectServerDefaults.AuthenticationScheme);
-
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         private Task HandleRefreshTokenRequest(HandleTokenRequestContext context)
         {
-            //TODO: add checking RefreshToken expiration (seems it's already implemented by OpenIdConnectServer)
+            try
+            {
+                // Retrieve the token from the database and ensure it is still valid.
+                var clientId = context.Ticket.Properties.Items["ClientId"];
+                var token = AuthService.FindRefreshToken(t =>
+                    t.TokenIdentifier.Equals(context.Ticket.GetTokenId())
+                    && t.ClientId.Equals(clientId));
+                if (token == null)
+                {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidGrant,
+                        description: "The refresh token is no longer valid.");
 
-            // Retrieve the token from the database and ensure it is still valid.
-            var clientId = context.Ticket.Properties.Items["ClientId"];
-            var token = AuthService.FindRefreshToken(t =>
-                                        t.TokenIdentifier.Equals(context.Ticket.GetTokenId())
-                                        && t.ClientId.Equals(clientId));
-            if (token == null)
+                    return Task.CompletedTask;
+                }
+                AuthService.DeleteRefreshToken(token);
+
+                context.Validate(new ClaimsPrincipal(context.Ticket.Principal),
+                    new AuthenticationProperties(context.Ticket.Properties.Items),
+                    OpenIdConnectServerDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
             {
                 context.Reject(
-                    error: OpenIdConnectConstants.Errors.InvalidGrant,
-                    description: "The refresh token is no longer valid.");
-
-                return Task.FromResult(0);
+                    error: $"{ex.HResult}",
+                    description: ex.Message);
             }
-            AuthService.DeleteRefreshToken(token);
 
-            context.Validate(new ClaimsPrincipal(context.Ticket.Principal),
-                            new AuthenticationProperties(context.Ticket.Properties.Items),
-                            OpenIdConnectServerDefaults.AuthenticationScheme);
-
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         private Task HandleClientCredentialsAuthentication(HandleTokenRequestContext context)
         {
             //TODO
-            // add note that currently authentication by grant_type=client_credentials is using search 
+            // Note: currently authentication by grant_type=client_credentials is using search 
             // appropriate Client with comparing ClientId and UserId
 
-            var client = AuthService.FindUser(u => context.Request.ClientId.Equals(u.Id.ToString(), StringComparison.Ordinal));
+            try
+            {
+                var client = AuthService.FindUser(u => context.Request.ClientId.Equals(u.Id.ToString(), StringComparison.Ordinal));
 
-            if (client == null)
+                if (client == null)
+                {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidGrant,
+                        description: "Invalid credentials.");
+                    return Task.CompletedTask;
+                }
+
+                if (!AuthService.ValidateRequestedClientCredentials(client, context.Request.ClientId, context.Request.ClientSecret))
+                {
+                    context.Reject(
+                        error: OpenIdConnectConstants.Errors.InvalidGrant,
+                        description: "The specified client credentials are invalid.");
+
+                    return Task.CompletedTask;
+                }
+
+                // Create a new ClaimsIdentity containing the claims that
+                // will be used to create an id_token and/or an access token.
+                var identity = new ClaimsIdentity(
+                    OpenIdConnectServerDefaults.AuthenticationScheme,
+                    OpenIdConnectConstants.Claims.Name,
+                    OpenIdConnectConstants.Claims.Role);
+
+                identity.AddClaim(OpenIdConnectConstants.Claims.Subject, Guid.NewGuid().ToString(),
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
+
+                identity.AddClaim(OpenIdConnectConstants.Claims.ClientId, client.Id.ToString(),
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
+
+                identity.AddClaim(OpenIdConnectConstants.Claims.Role, client.Role,
+                    OpenIdConnectConstants.Destinations.AccessToken,
+                    OpenIdConnectConstants.Destinations.IdentityToken);
+
+                // Create a new authentication ticket holding the user identity.
+                var properties = new Dictionary<string, string>
+                    {
+                        { "ClientId", client.Id.ToString() },
+                    };
+
+                context.Validate(new ClaimsPrincipal(identity),
+                                new AuthenticationProperties(properties),
+                                OpenIdConnectServerDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
             {
                 context.Reject(
-                    error: OpenIdConnectConstants.Errors.InvalidGrant,
-                    description: "Invalid credentials.");
-                return Task.FromResult(0);
+                    error: $"{ex.HResult}",
+                    description: ex.Message);
             }
-
-            if (!AuthService.ValidateRequestedClientCredentials(client, context.Request.ClientId, context.Request.ClientSecret))
-            {
-                context.Reject(
-                    error: OpenIdConnectConstants.Errors.InvalidGrant,
-                    description: "The specified user credentials are invalid.");
-
-                return Task.FromResult(0);
-            }
-
-            // Create a new ClaimsIdentity containing the claims that
-            // will be used to create an id_token and/or an access token.
-            var identity = new ClaimsIdentity(
-                OpenIdConnectServerDefaults.AuthenticationScheme,
-                OpenIdConnectConstants.Claims.Name,
-                OpenIdConnectConstants.Claims.Role);
-
-            identity.AddClaim(OpenIdConnectConstants.Claims.Subject, Guid.NewGuid().ToString(),
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
-            identity.AddClaim(OpenIdConnectConstants.Claims.ClientId, client.Id.ToString(),
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
-
-            // Create a new authentication ticket holding the user identity.
-            var properties = new Dictionary<string, string>
-            {
-                { "ClientId", client.Id.ToString() },
-            };
-
-            context.Validate(new ClaimsPrincipal(identity),
-                            new AuthenticationProperties(properties),
-                            OpenIdConnectServerDefaults.AuthenticationScheme);
-
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public override Task ExtractTokenRequest(ExtractTokenRequestContext context)
@@ -195,7 +222,8 @@ namespace Exoft.Security.OAuthServer.Core
                 context.Request.AddParameter(OpenIdConnectConstants.Parameters.Scope,
                     new OpenIdConnectParameter(Configuration.Scope));
 
-            return base.ExtractTokenRequest(context);
+            //return base.ExtractTokenRequest(context);
+            return Task.CompletedTask;
         }
 
         //
@@ -209,7 +237,6 @@ namespace Exoft.Security.OAuthServer.Core
         //
         // Returns:
         //     A System.Threading.Tasks.Task that can be used to monitor the asynchronous operation.
-        //public override Task ValidateTokenRequest(ValidateTokenRequestContext context) { return Task.FromResult(0); }
         public override Task ValidateTokenRequest(ValidateTokenRequestContext context)
         {
             // Reject the token request if it doesn't specify grant_type=authorization_code,
@@ -223,7 +250,7 @@ namespace Exoft.Security.OAuthServer.Core
                     description: "Only authorization code, refresh token, client credentials grant types " +
                                  "are accepted by this authorization server.");
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             // Note: client authentication is not mandatory for non-confidential client applications like mobile apps
@@ -241,7 +268,7 @@ namespace Exoft.Security.OAuthServer.Core
                         error: OpenIdConnectConstants.Errors.InvalidRequest,
                         description: "The mandatory 'client_id'/'client_secret' parameters are missing.");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 var client = AuthService.FindUser(u => u.Id.ToString() == context.ClientId);
@@ -251,7 +278,7 @@ namespace Exoft.Security.OAuthServer.Core
                         error: OpenIdConnectConstants.Errors.InvalidClient,
                         description: "The specified client identifier is invalid.");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
@@ -265,7 +292,7 @@ namespace Exoft.Security.OAuthServer.Core
                         error: OpenIdConnectConstants.Errors.InvalidClient,
                         description: "The specified client credentials are invalid.");
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 context.Validate();
@@ -275,7 +302,7 @@ namespace Exoft.Security.OAuthServer.Core
                 context.Skip();
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         //
@@ -289,43 +316,55 @@ namespace Exoft.Security.OAuthServer.Core
         //
         // Returns:
         //     A System.Threading.Tasks.Task that can be used to monitor the asynchronous operation.
-        //public override Task HandleTokenRequest(HandleTokenRequestContext context) { return Task.FromResult(0);}
         public override Task HandleTokenRequest(HandleTokenRequestContext context)
         {
-            // Only handle grant_type=password token requests and let the
-            // OpenID Connect server middleware handle the other grant types.
-            if (context.Request.IsPasswordGrantType())
+            try
             {
-                return HandleUserAuthentication(context);
+                // Only handle grant_type=password token requests and let the
+                // OpenID Connect server middleware handle the other grant types.
+                if (context.Request.IsPasswordGrantType())
+                {
+                    return HandleUserAuthentication(context);
+                }
+                else if (context.Request.IsRefreshTokenGrantType())
+                {
+                    return HandleRefreshTokenRequest(context);
+                }
+                else if (context.Request.IsClientCredentialsGrantType())
+                {
+                    return HandleClientCredentialsAuthentication(context);
+                }
             }
-            else if (context.Request.IsRefreshTokenGrantType())
+            catch (Exception ex)
             {
-                return HandleRefreshTokenRequest(context);
+                context.Reject(
+                    error: $"{ex.HResult}",
+                    description: ex.Message);
             }
-            else if (context.Request.IsClientCredentialsGrantType())
-            {
-                return HandleClientCredentialsAuthentication(context);
-            }
-
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public override Task SerializeRefreshToken(SerializeRefreshTokenContext context)
         {
-            int userId = Convert.ToInt32(context.Ticket.Properties.Items["UserId"]);
-            string clientId = context.Ticket.Properties.Items["ClientId"];
+            try
+            {
+                int userId = Convert.ToInt32(context.Ticket.Properties.Items["UserId"]);
+                string clientId = context.Ticket.Properties.Items["ClientId"];
 
-            var token = AuthService.AddRefreshToken(
-                            context.Ticket.GetTokenId(),
-                            userId,
-                            clientId,
-                            DateTime.UtcNow,
-                            DateTime.UtcNow.AddMinutes(Configuration.RefreshTokenLifetimeMinutes));
+                var token = AuthService.AddRefreshToken(
+                    context.Ticket.GetTokenId(),
+                    userId,
+                    clientId,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow.AddMinutes(Configuration.RefreshTokenLifetimeMinutes));
 
-            context.Ticket.Properties.IssuedUtc = token.IssuedUtc;
-            context.Ticket.Properties.ExpiresUtc = token.ExpiresUtc;
-
-            return Task.FromResult(0);
+                context.Ticket.Properties.IssuedUtc = token.IssuedUtc;
+                context.Ticket.Properties.ExpiresUtc = token.ExpiresUtc;
+            }
+            catch (Exception ex)
+            {
+            }
+            return Task.CompletedTask;
         }
     }
 }

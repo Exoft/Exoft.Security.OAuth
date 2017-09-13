@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Exoft.Security.OAuth.Samples.CustomProviders;
 using Exoft.Security.OAuth.Samples.Service;
+using Exoft.Security.OAuthServer.Core;
 using Exoft.Security.OAuthServer.Providers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -49,7 +50,8 @@ namespace Exoft.Security.OAuth.Samples
 
             .AddOpenIdConnectServer(options =>
             {
-                options.ProviderType = typeof(CustomAuthorizationProvider);
+                //options.ProviderType = typeof(CustomAuthorizationProvider);
+                options.ProviderType = typeof(ExoftOAuthServerProvider);
 
                 // Enable the authorization, logout, token and userinfo endpoints.
                 options.TokenEndpointPath = "/token";
@@ -62,7 +64,8 @@ namespace Exoft.Security.OAuth.Samples
                 options.AllowInsecureHttp = true;
             });
 
-            services.AddScoped<CustomAuthorizationProvider>();
+            //services.AddScoped<CustomAuthorizationProvider>();
+            services.AddScoped<ExoftOAuthServerProvider>();
 
             services.AddSingleton<IAuthenticationService>(p => authService);
             services.AddSingleton<IAuthenticationConfiguration>(p => configs);
