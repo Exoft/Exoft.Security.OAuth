@@ -9,7 +9,7 @@ To use library you need to follow these steps:
 
 - Have an existing ASP .NET Core project or create new one, recommended to use `.NET Core 1.1` version of target framework;
 
-- Install the appropriate nuget package [**Exoft.Security.OAuthServer**](https://www.nuget.org/packages/Exoft.Security.OAuthServer)
+- Install the appropriate nuget package [**Exoft.Security.OAuthServer 1.x**](https://www.nuget.org/packages/Exoft.Security.OAuthServer)
 
 - Configure the `Startup.cs` file by adding neccassary options, similar to this:
 
@@ -55,7 +55,7 @@ For more customization of authentication you can override default `ExoftOAuthSer
 
 # Demo
 
-For using your authentication server you just need to make the request with appropriate parameters which are described below.
+For using your authorization server you just need to make the request with appropriate parameters which are described below.
 
 Request URL: `http://localhost/token`.
 
@@ -65,17 +65,30 @@ Parameters which are using for:
 
 - **Authentication**
 
-`grant_type: password`
+`grant_type` with the value `password`
 
-`username: admin`
+`username` with the user's username
 
-`password: admin`
+`password` with the user's password
 
-- **Refresh access token**
 
-`grant_type: refresh_token`
+- **Refresh token grant**
 
-`refresh_token: CfDJ8KZN5Hdk1ppDj3lAR`
+`grant_type` with the value `refresh_token`
+
+`refresh_token` with the refresh token
+
+
+The authorization server will respond with a JSON object containing the following properties:
+
+`token_type` with the value `Bearer`
+
+`expires_in` with an integer representing the TTL of the access token
+
+`access_token` the access token itself
+
+`refresh_token` a refresh token that can be used to acquire a new access token when the original expires
+
 
 In the case when authentication or request on updating access token were succeeded, the result will be next:
 
@@ -88,6 +101,27 @@ In the case when authentication or request on updating access token were succeed
     "id_token": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0 ..."
 }
 ```
+
+
+- **Client credentials grant**
+
+`grant_type` with the value `client_credentials`
+
+`client_id` with the the client's ID
+
+`client_secret` with the client's secret
+
+`scope` with a space-delimited list of requested scope permissions.
+
+The authorization server will respond with a JSON object containing the following properties:
+
+`token_type` with the value `Bearer`
+
+`expires_in` with an integer representing the TTL of the access token
+
+`access_token` the access token itself
+
+
 Otherwise, will get the error response, similar to this:
 
 ```json
