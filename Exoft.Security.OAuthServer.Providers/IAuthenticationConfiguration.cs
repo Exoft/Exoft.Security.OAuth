@@ -6,9 +6,9 @@ namespace Exoft.Security.OAuthServer.Providers
 {
     public interface IAuthenticationConfiguration
     {
-        string Scope { get; set; }
+        int AccessTokenLifetimeMinutes { get; set; }
+        int RefreshTokenLifetimeMinutes { get; set; }
 
-        float AccessTokenLifetimeMinutes { get; set; }
-        float RefreshTokenLifetimeMinutes { get; set; }
+        string RequestScope { get; set; }
     }
 }

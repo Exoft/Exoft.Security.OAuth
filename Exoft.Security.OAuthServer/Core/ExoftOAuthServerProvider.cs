@@ -29,22 +29,24 @@ namespace Exoft.Security.OAuthServer.Core
         /// Uses for fetching Users or RefreshTokens in all functions that perform request validation 
         /// of Token and AuthorizationRequest
         /// </summary>
-        public IAuthenticationService AuthService { get; private set; }
+        protected IAuthenticationService _authService;
 
-        public IAuthenticationConfiguration Configuration { get; private set; }
+        protected IAuthenticationConfiguration _configuration;
 
         // TODO: Add response filter which will be remove some properties from response: id_token and etc
 
+        public ExoftOAuthServerProvider() {}
+
         public ExoftOAuthServerProvider(IAuthenticationService authService, IAuthenticationConfiguration configuration)
         {
-            AuthService = authService;
-            Configuration = configuration;
+            _authService = authService;
+            _configuration = configuration;
 
-            if (Configuration.AccessTokenLifetimeMinutes <= 0)
-                Configuration.AccessTokenLifetimeMinutes = OAuthServerConstants.AccessTokenExpireTimeMinutes;
+            if (_configuration.AccessTokenLifetimeMinutes <= 0)
+                _configuration.AccessTokenLifetimeMinutes = OAuthServerConstants.AccessTokenExpireTimeMinutes;
 
-            if (Configuration.RefreshTokenLifetimeMinutes <= 0)
-                Configuration.RefreshTokenLifetimeMinutes = OAuthServerConstants.RefreshTokenExpireTimeMinutes;
+            if (_configuration.RefreshTokenLifetimeMinutes <= 0)
+                _configuration.RefreshTokenLifetimeMinutes = OAuthServerConstants.RefreshTokenExpireTimeMinutes;
         }
 
         private Task HandleUserAuthentication(HandleTokenRequestContext context)
@@ -53,7 +55,7 @@ namespace Exoft.Security.OAuthServer.Core
             {
                 string clientId = Guid.NewGuid().ToString();
 
-                var user = AuthService.FindUser(u => u.Username == context.Request.Username);
+                var user = _authService.FindUser(u => u.Username == context.Request.Username);
 
                 if (user == null)
                 {
@@ -63,7 +65,7 @@ namespace Exoft.Security.OAuthServer.Core
                     return Task.CompletedTask;
                 }
 
-                if (!AuthService.ValidateRequestedUserCredentials(user, context.Request.Username, context.Request.Password))
+                if (!_authService.ValidateRequestedUserCredentials(user, context.Request.Username, context.Request.Password))
                 {
                     context.Reject(
                         error: OpenIdConnectConstants.Errors.InvalidGrant,
@@ -123,7 +125,7 @@ namespace Exoft.Security.OAuthServer.Core
             {
                 // Retrieve the token from the database and ensure it is still valid.
                 var clientId = context.Ticket.Properties.Items["ClientId"];
-                var token = AuthService.FindRefreshToken(t =>
+                var token = _authService.FindRefreshToken(t =>
                     t.TokenIdentifier.Equals(context.Ticket.GetTokenId())
                     && t.ClientId.Equals(clientId));
                 if (token == null)
@@ -134,7 +136,7 @@ namespace Exoft.Security.OAuthServer.Core
 
                     return Task.CompletedTask;
                 }
-                AuthService.DeleteRefreshToken(token);
+                _authService.DeleteRefreshToken(token);
 
                 context.Validate(new ClaimsPrincipal(context.Ticket.Principal),
                     new AuthenticationProperties(context.Ticket.Properties.Items),
@@ -158,7 +160,7 @@ namespace Exoft.Security.OAuthServer.Core
 
             try
             {
-                var client = AuthService.FindUser(u => context.Request.ClientId.Equals(u.Id.ToString(), StringComparison.Ordinal));
+                var client = _authService.FindUser(u => context.Request.ClientId.Equals(u.Id.ToString(), StringComparison.Ordinal));
 
                 if (client == null)
                 {
@@ -168,7 +170,7 @@ namespace Exoft.Security.OAuthServer.Core
                     return Task.CompletedTask;
                 }
 
-                if (!AuthService.ValidateRequestedClientCredentials(client, context.Request.ClientId, context.Request.ClientSecret))
+                if (!_authService.ValidateRequestedClientCredentials(client, context.Request.ClientId, context.Request.ClientSecret))
                 {
                     context.Reject(
                         error: OpenIdConnectConstants.Errors.InvalidGrant,
@@ -220,7 +222,7 @@ namespace Exoft.Security.OAuthServer.Core
             // Applying auth configurations
             if (!context.Request.HasParameter(OpenIdConnectConstants.Parameters.Scope))
                 context.Request.AddParameter(OpenIdConnectConstants.Parameters.Scope,
-                    new OpenIdConnectParameter(Configuration.Scope));
+                    new OpenIdConnectParameter(_configuration.RequestScope));
 
             //return base.ExtractTokenRequest(context);
             return Task.CompletedTask;
@@ -271,7 +273,7 @@ namespace Exoft.Security.OAuthServer.Core
                     return Task.CompletedTask;
                 }
 
-                var client = AuthService.FindUser(u => u.Id.ToString() == context.ClientId);
+                var client = _authService.FindUser(u => u.Id.ToString() == context.ClientId);
                 if (client == null)
                 {
                     context.Reject(
@@ -286,7 +288,7 @@ namespace Exoft.Security.OAuthServer.Core
                 // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
                 // For that, you can use the CryptoHelper library developed by @henkmollema:
                 // https://github.com/henkmollema/CryptoHelper.
-                if (!AuthService.ValidateRequestedClientCredentials(client, context.ClientId, context.ClientSecret))
+                if (!_authService.ValidateRequestedClientCredentials(client, context.ClientId, context.ClientSecret))
                 {
                     context.Reject(
                         error: OpenIdConnectConstants.Errors.InvalidClient,
@@ -351,12 +353,12 @@ namespace Exoft.Security.OAuthServer.Core
                 int userId = Convert.ToInt32(context.Ticket.Properties.Items["UserId"]);
                 string clientId = context.Ticket.Properties.Items["ClientId"];
 
-                var token = AuthService.AddRefreshToken(
+                var token = _authService.AddRefreshToken(
                     context.Ticket.GetTokenId(),
                     userId,
                     clientId,
                     DateTime.UtcNow,
-                    DateTime.UtcNow.AddMinutes(Configuration.RefreshTokenLifetimeMinutes));
+                    DateTime.UtcNow.AddMinutes(_configuration.RefreshTokenLifetimeMinutes));
 
                 context.Ticket.Properties.IssuedUtc = token.IssuedUtc;
                 context.Ticket.Properties.ExpiresUtc = token.ExpiresUtc;

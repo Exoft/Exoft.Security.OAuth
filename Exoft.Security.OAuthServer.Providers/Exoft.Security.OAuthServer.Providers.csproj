@@ -5,10 +5,15 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NeutralLanguage>en</NeutralLanguage>
     <Description>Interfaces that needed for Exoft.Security.OAuthServer package.</Description>
-    <Authors>Markiyan Skolzodra</Authors>
+    <Authors>Exoft</Authors>
     <Company>Exoft</Company>
     <PackageTags>oauth oauth2 asp .net core openidconnect aspnetcore</PackageTags>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
+    <PackageReleaseNotes>Changed types of default properties in IAuthenticationConfiguration interface</PackageReleaseNotes>
+    <PackageIconUrl>http://exoft.net/wp-content/uploads/2016/09/Favicon_64%D1%8564.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/Exoft/Exoft.Security.OAuth/tree/master_NetCore2_0</PackageProjectUrl>
+    <FileVersion>2.0.1.0</FileVersion>
+    <AssemblyVersion>2.0.1.0</AssemblyVersion>
   </PropertyGroup>
 
 </Project>
