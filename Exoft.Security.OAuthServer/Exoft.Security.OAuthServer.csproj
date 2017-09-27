@@ -9,16 +9,16 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageTags>oauth oauth2 asp .net core openidconnect aspnetcore</PackageTags>
-    <Version>2.0.2</Version>
+    <Version>2.0.3</Version>
     <PackageReleaseNotes>Fixes: added ability to set up configuration and authentication property in derived class.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/Exoft/Exoft.Security.OAuth/tree/master_NetCore2_0</PackageProjectUrl>
     <PackageIconUrl>http://exoft.net/wp-content/uploads/2016/09/Favicon_64%D1%8564.png</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNet.Security.OAuth.Introspection" Version="2.0.0-rc1-0286" />
-    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="2.0.0-rc1-0286" />
-    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc1-1310" />
+    <PackageReference Include="AspNet.Security.OAuth.Introspection" Version="1.0.0" />
+    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="1.0.0" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

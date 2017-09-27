@@ -11,7 +11,7 @@ using Exoft.Security.OAuthServer.Providers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.Authentication;
 using Exoft.Security.OAuthServer.Extensions;
-using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
+//using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 using IAuthenticationService = Exoft.Security.OAuthServer.Providers.IAuthenticationService;
 
 namespace Exoft.Security.OAuthServer.Core
@@ -104,7 +104,6 @@ namespace Exoft.Security.OAuthServer.Core
 
                 // Create a new authentication ticket holding the user identity.
                 var properties = Helpers.GenerateAuthenticationProperties(user, clientId);
-
                 context.Validate(new ClaimsPrincipal(identity),
                                 new AuthenticationProperties(properties),
                                 OpenIdConnectServerDefaults.AuthenticationScheme);

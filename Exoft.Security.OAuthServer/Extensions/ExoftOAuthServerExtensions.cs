@@ -11,7 +11,7 @@ using Exoft.Security.OAuthServer.Providers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Authentication;
-using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
+//using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 
 namespace Exoft.Security.OAuthServer.Extensions
 {
